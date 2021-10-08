@@ -34,8 +34,8 @@ def cast():
     press_mouse_key()
     sleep(cast_timeout)
     release_mouse_key()
-    debug("Pause for: 5 s")
-    sleep(5)
+    debug("Pause for: 4 s")
+    sleep(4)
     debug("press b")
     press_key('b')
 
@@ -71,8 +71,8 @@ def arm_disarm_fishing_rod(timeout):
 
 def open_close_inventory(timeout):
     sleep(timeout)
-    press_key('tab')
-    release_key('tab')
+    press_key('i')
+    release_key('i')
     sleep(timeout)
 
 def repair(timeout):
@@ -90,3 +90,31 @@ def confirm_repair(timeout):
     sleep(0.1)
     release_key('e')
     sleep(timeout)
+
+def select_bait():
+    release_key('b')
+
+    debug("Bait selection.")
+    press_key('r')
+    sleep(0.1)
+    release_key('r')
+
+    bait_select_timeout = random_timeout(dict['bait']['timeouts']['select'])
+    debug("Bait select. Total time: {} s".format(bait_select_timeout))
+    press_on_bait(bait_select_timeout)
+
+    confirm_timeout = random_timeout(dict['bait']['timeouts']['confirm'])
+    debug("Confirm bait selection. Total time: {} s".format(confirm_timeout))
+    press_equip_bait(confirm_timeout)
+
+def press_on_bait(timeout):
+    sleep(timeout)
+    click_mouse_with_coordinates(dict['bait']['bait_x'].get(), dict['bait']['bait_y'].get())
+    sleep(timeout)
+
+def press_equip_bait(timeout):
+    sleep(timeout)
+    click_mouse_with_coordinates(dict['bait']['equip_button_x'].get(), dict['bait']['equip_button_y'].get())
+    sleep(timeout)
+    # waiting for animation to finish
+    sleep(1)

@@ -5,7 +5,6 @@ from wrappers.logging_wrapper import info, debug
 from utils.config import dict, random_timeout
 from time import time
 
-
 def fishing_loop():
     if (not gv.continue_fishing):
         return
@@ -19,33 +18,52 @@ def fishing_loop():
                 gv.last_repair_time = int(time())
                 info("Repairing")
                 repairing()
+                if dict['bait']['enable'].get():
+                    info("Selecting bait")
+                    select_bait()
     if (gv.continue_fishing):
         gv.root.after(int(random_timeout(dict['fishing']['timeouts']['loop'])*1000), fishing_loop)
 
 
 
 def call_appropriate_fishing_action():
+    global FAILSAFE, CastRecently
     result_from_model = image_recognition_result(dict['fishing']['x'].get(), dict['fishing']['y'].get(),
                                          dict['fishing']['width'].get(), dict['fishing']['height'].get())
 
     if(gv.last_results.get_last_value() != result_from_model and result_from_model != '1'): # double checking that it is a correct match
         return result_from_model
     if result_from_model == '0': # 0 - model does not match any data (not fish captured yet)
-        info("Waiting for fish...")
+        # info("Waiting for fish...")
         return '0'
     elif result_from_model == '1': # 1 - model noticed a fish(left click to initiate fishing)
-        info("Found a fish!")
+        info("Found a fish! Reeling...")
         fish_notice()
+        gv.FAILSAFE = 0
         return '1'
     elif result_from_model == '2': #2 - model matched the green icon (reeling a fish in)
-        info("Reeling a fish")
+        # info("Reeling a fish")
         reel_fish()
         return '2'
     elif result_from_model == '3': #3 - model matched the orange/red icon (wait x sec)
-        info("Pause fishing")
+        info("Adding slack...")
         pause()
         return '3'
     elif result_from_model == '4': #4 - model did not match anything (left click, wait x sec)
-        info("Cast fishing rod")
-        cast()
+        info("Attempting to cast fishing rod...")
+        if gv.CastRecently == True:
+            info(f"We already casted")
+        else:
+            info("Haven't casted, casting...")
+            
+        if gv.FAILSAFE < 10:
+            cast()
+            
+        if gv.FAILSAFE >= 0:
+            info(f"Failsafe is {gv.FAILSAFE}")
+            
+        if gv.FAILSAFE > 10:
+            info("We are disconnected.")
+            sleep(28800)
         return '4'
+        gv.FAILSAFE += 1

@@ -20,3 +20,6 @@ continue_fishing = False
 last_repair_time = int(time())
 last_results = LastResults()
 root = Tk()
+
+FAILSAFE = 0
+CastRecently = False
